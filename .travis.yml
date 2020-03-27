@@ -1,0 +1,20 @@
+sudo: false
+language: php
+
+php:
+  - 7.3
+  - 7.4snapshot
+
+before_install:
+  - pecl install ast
+  - composer self-update
+
+install:
+  - composer install --prefer-dist --no-interaction
+
+script:
+  - vendor/bin/phpunit --coverage-html ./tests/coverage/html --coverage-clover ./tests/coverage/clover.xml
+  - vendor/bin/behat
+
+after_success:
+  - travis_retry php bin/coveralls -v
