@@ -2,7 +2,9 @@
 
 namespace Ecotone\Laravel\Commands;
 
+use Ecotone\Messaging\Config\ConfiguredMessagingSystem;
 use Illuminate\Console\Command;
+use Symfony\Component\Console\Helper\Table;
 
 class ListAllPollableEdnpointsCommand extends Command
 {
@@ -35,8 +37,20 @@ class ListAllPollableEdnpointsCommand extends Command
      *
      * @return mixed
      */
-    public function handle()
+    public function handle(ConfiguredMessagingSystem $configuredMessagingSystem)
     {
-        //
+        $repackedNames = [];
+        foreach ($configuredMessagingSystem->getListOfSeparatelyRunningConsumers() as $consumerName) {
+            $repackedNames[] = [$consumerName];
+        }
+
+        $table = new Table($output);
+        $table
+            ->setHeaders(array('Endpoint Names'))
+            ->setRows($repackedNames)
+        ;
+        $table->render();
+
+        return 0;
     }
 }

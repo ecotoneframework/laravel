@@ -2,6 +2,7 @@
 
 namespace Ecotone\Laravel\Commands;
 
+use Ecotone\Messaging\Config\ConfiguredMessagingSystem;
 use Illuminate\Console\Command;
 
 class RunPollableEndpointCommand extends Command
@@ -35,8 +36,10 @@ class RunPollableEndpointCommand extends Command
      *
      * @return mixed
      */
-    public function handle()
+    public function handle(ConfiguredMessagingSystem $configuredMessagingSystem)
     {
-        //
+        $configuredMessagingSystem->runSeparatelyRunningEndpointBy($this->argument("name"));
+
+        return 0;
     }
 }
