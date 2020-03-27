@@ -22,7 +22,7 @@
     },
     "require": {
         "php": ">=7.3.0",
-        "ecotone/ecotone": "^9.0",
+        "ecotone/ecotone": "^0.9",
         "laravel/framework": "^7.0"
     },
     "require-dev": {
