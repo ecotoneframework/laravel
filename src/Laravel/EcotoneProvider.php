@@ -36,22 +36,22 @@ class EcotoneProvider extends ServiceProvider
 
         $applicationConfiguration = ApplicationConfiguration::createWithDefaults()
             ->withEnvironment($environment)
-            ->withLoadCatalog("app")
+            ->withLoadCatalog(Config::get("ecotone.loadAppNamespaces") ? "app" : "")
             ->withFailFast(false)
             ->withNamespaces(array_merge([FileSystemAnnotationRegistrationService::FRAMEWORK_NAMESPACE], Config::get("ecotone.namespaces")));
 
         if ($cacheDirectory) {
             $applicationConfiguration = $applicationConfiguration
-                                        ->withCacheDirectoryPath($cacheDirectory);
+                ->withCacheDirectoryPath($cacheDirectory);
         }
 
         if ($serializationMediaType) {
             $applicationConfiguration = $applicationConfiguration
-                                        ->withDefaultSerializationMediaType($serializationMediaType);
+                ->withDefaultSerializationMediaType($serializationMediaType);
         }
         if ($errorChannel) {
             $applicationConfiguration = $applicationConfiguration
-                                        ->withDefaultErrorChannel($errorChannel);
+                ->withDefaultErrorChannel($errorChannel);
         }
 
         $configuration = MessagingSystemConfiguration::prepare(

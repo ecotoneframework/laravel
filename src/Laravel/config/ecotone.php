@@ -1,6 +1,8 @@
 <?php
 
 return [
+//    load app catalog namespaces automatically
+    'loadAppNamespaces' => true,
 //    Namespaces that should be loaded by Ecotone
     'namespaces' => [],
 //    Should configuration be cached. Application will boot much faster, but will require cache:clear after changes
