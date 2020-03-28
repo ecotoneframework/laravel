@@ -9,6 +9,7 @@ use Ecotone\Messaging\Config\ApplicationConfiguration;
 use Ecotone\Messaging\Config\ConfiguredMessagingSystem;
 use Ecotone\Messaging\Config\MessagingSystemConfiguration;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
 
 class EcotoneProvider extends ServiceProvider
@@ -22,18 +23,41 @@ class EcotoneProvider extends ServiceProvider
      */
     public function register()
     {
+        $this->mergeConfigFrom(
+            __DIR__.'/config/ecotone.php', 'ecotone'
+        );
+
         $environment = App::environment();
         $rootCatalog = App::basePath();
-        $cacheDirectory = App::storagePath("framework/cache") . DIRECTORY_SEPARATOR . "ecotone";
+        $isCachingConfiguration = $environment === "prod" ? true : Config::get("ecotone.cacheConfiguration");
+        $cacheDirectory = $isCachingConfiguration ? App::storagePath() . DIRECTORY_SEPARATOR . "framework" . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "data" . DIRECTORY_SEPARATOR . "ecotone" : null;
+        $serializationMediaType = Config::get("ecotone.serializationMediaType");
+        $errorChannel = Config::get("ecotone.errorChannel");
+
+        $applicationConfiguration = ApplicationConfiguration::createWithDefaults()
+            ->withEnvironment($environment)
+            ->withLoadCatalog("app")
+            ->withFailFast(false)
+            ->withNamespaces(array_merge([FileSystemAnnotationRegistrationService::FRAMEWORK_NAMESPACE], Config::get("ecotone.namespaces")));
+
+        if ($cacheDirectory) {
+            $applicationConfiguration = $applicationConfiguration
+                                        ->withCacheDirectoryPath($cacheDirectory);
+        }
+
+        if ($serializationMediaType) {
+            $applicationConfiguration = $applicationConfiguration
+                                        ->withDefaultSerializationMediaType($serializationMediaType);
+        }
+        if ($errorChannel) {
+            $applicationConfiguration = $applicationConfiguration
+                                        ->withDefaultErrorChannel($errorChannel);
+        }
 
         $configuration = MessagingSystemConfiguration::prepare(
             $rootCatalog,
             new LaravelReferenceSearchService($this->app),
-            ApplicationConfiguration::createWithDefaults()
-                ->withEnvironment($environment)
-                ->withLoadCatalog("app")
-                ->withCacheDirectoryPath($cacheDirectory)
-                ->withNamespaces([FileSystemAnnotationRegistrationService::FRAMEWORK_NAMESPACE])
+            $applicationConfiguration
         );
 
         foreach ($configuration->getRegisteredGateways() as $registeredGateway) {
@@ -60,9 +84,6 @@ class EcotoneProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/config/ecotone.php' => config_path('ecotone.php'),
         ]);
-        $this->mergeConfigFrom(
-            __DIR__.'/config/ecotone.php', 'ecotone'
-        );
 
         if ($this->app->runningInConsole()) {
             $this->commands([
