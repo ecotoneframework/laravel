@@ -3,6 +3,8 @@
 namespace Ecotone\Laravel\Commands;
 
 use Ecotone\Messaging\Config\ConfiguredMessagingSystem;
+use Ecotone\Messaging\Config\MessagingSystem;
+use Ecotone\Modelling\CommandBus;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Helper\Table;
 
@@ -44,7 +46,7 @@ class ListAllPollableEdnpointsCommand extends Command
             $repackedNames[] = [$consumerName];
         }
 
-        $table = new Table($output);
+        $table = new Table($this->output);
         $table
             ->setHeaders(array('Endpoint Names'))
             ->setRows($repackedNames)

@@ -30,7 +30,11 @@ class EcotoneProvider extends ServiceProvider
         $environment = App::environment();
         $rootCatalog = App::basePath();
         $isCachingConfiguration = $environment === "prod" ? true : Config::get("ecotone.cacheConfiguration");
-        $cacheDirectory = $isCachingConfiguration ? App::storagePath() . DIRECTORY_SEPARATOR . "framework" . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "data" . DIRECTORY_SEPARATOR . "ecotone" : null;
+        $cacheDirectory = App::storagePath() . DIRECTORY_SEPARATOR . "framework" . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "data" . DIRECTORY_SEPARATOR . "ecotone";
+        if (!is_dir($cacheDirectory)) {
+            mkdir($cacheDirectory, 0777, true);
+        }
+
         $serializationMediaType = Config::get("ecotone.serializationMediaType");
         $errorChannel = Config::get("ecotone.errorChannel");
 
@@ -40,7 +44,7 @@ class EcotoneProvider extends ServiceProvider
             ->withFailFast(false)
             ->withNamespaces(array_merge([FileSystemAnnotationRegistrationService::FRAMEWORK_NAMESPACE], Config::get("ecotone.namespaces")));
 
-        if ($cacheDirectory) {
+        if ($isCachingConfiguration) {
             $applicationConfiguration = $applicationConfiguration
                 ->withCacheDirectoryPath($cacheDirectory);
         }
@@ -71,7 +75,9 @@ class EcotoneProvider extends ServiceProvider
             });
         }
 
-        $this->app->singleton(self::MESSAGING_SYSTEM_REFERENCE, $configuration->buildMessagingSystemFromConfiguration(new LaravelReferenceSearchService($this->app)));
+        $this->app->singleton(self::MESSAGING_SYSTEM_REFERENCE, function() use ($configuration) {
+            return $configuration->buildMessagingSystemFromConfiguration(new LaravelReferenceSearchService($this->app));
+        });
     }
 
     /**
