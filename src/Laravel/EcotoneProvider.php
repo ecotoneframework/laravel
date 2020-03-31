@@ -8,9 +8,15 @@ use Ecotone\Messaging\Config\Annotation\FileSystemAnnotationRegistrationService;
 use Ecotone\Messaging\Config\ApplicationConfiguration;
 use Ecotone\Messaging\Config\ConfiguredMessagingSystem;
 use Ecotone\Messaging\Config\MessagingSystemConfiguration;
+use Ecotone\Messaging\Handler\Logger\EchoLogger;
+use Ecotone\Messaging\Handler\Logger\LoggingHandlerBuilder;
+use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\Console\Logger\ConsoleLogger;
 
 class EcotoneProvider extends ServiceProvider
 {
@@ -90,6 +96,16 @@ class EcotoneProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/config/ecotone.php' => config_path('ecotone.php'),
         ]);
+
+        if (!$this->app->has(LoggingHandlerBuilder::LOGGER_REFERENCE)) {
+            $this->app->singleton(LoggingHandlerBuilder::LOGGER_REFERENCE, function(Application $app) {
+                if ($app->runningInConsole()) {
+                    return new CombinedLogger($app->get("log"), new EchoLogger());
+                }
+
+                return $app->get("log");
+            });
+        }
 
         if ($this->app->runningInConsole()) {
             $this->commands([
