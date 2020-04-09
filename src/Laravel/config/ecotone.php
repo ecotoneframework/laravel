@@ -10,5 +10,5 @@ return [
 //    What should be default serialization type e.g. application/json
     'serializationMediaType' => null,
 //    What is the default error channel, where exceptions will be published
-    'errorChannel' => null
+    'defaultErrorChannel' => null
 ];

@@ -42,7 +42,7 @@ class EcotoneProvider extends ServiceProvider
         }
 
         $serializationMediaType = Config::get("ecotone.serializationMediaType");
-        $errorChannel = Config::get("ecotone.errorChannel");
+        $errorChannel = Config::get("ecotone.defaultErrorChannel");
 
         $applicationConfiguration = ApplicationConfiguration::createWithDefaults()
             ->withEnvironment($environment)
