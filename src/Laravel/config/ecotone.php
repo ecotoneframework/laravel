@@ -10,5 +10,7 @@ return [
 //    What should be default serialization type e.g. application/json
     'serializationMediaType' => null,
 //    What is the default error channel, where exceptions will be published
-    'defaultErrorChannel' => null
+    'defaultErrorChannel' => null,
+//   Retry template when there is a problem with polling the message
+    'defaultChannelPollRetry' => null
 ];

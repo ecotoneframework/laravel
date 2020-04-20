@@ -5,7 +5,7 @@ namespace Ecotone\Laravel\Commands;
 use Ecotone\Messaging\Config\ConfiguredMessagingSystem;
 use Illuminate\Console\Command;
 
-class RunPollableEndpointCommand extends Command
+class RunAsynchronousEndpointCommand extends Command
 {
     /**
      * The name and signature of the console command.
@@ -19,7 +19,7 @@ class RunPollableEndpointCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Runs Ecotone pollable endpoint';
+    protected $description = 'Runs Ecotone asynchronous endpoint';
 
     /**
      * Create a new command instance.

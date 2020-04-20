@@ -2,8 +2,8 @@
 
 namespace Ecotone\Laravel;
 
-use Ecotone\Laravel\Commands\ListAllPollableEdnpointsCommand;
-use Ecotone\Laravel\Commands\RunPollableEndpointCommand;
+use Ecotone\Laravel\Commands\ListAllAsynchronousEndpointsCommand;
+use Ecotone\Laravel\Commands\RunAsynchronousEndpointCommand;
 use Ecotone\Messaging\Config\Annotation\FileSystemAnnotationRegistrationService;
 use Ecotone\Messaging\Config\ApplicationConfiguration;
 use Ecotone\Messaging\Config\ConfiguredMessagingSystem;
@@ -109,8 +109,8 @@ class EcotoneProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->commands([
-                ListAllPollableEdnpointsCommand::class,
-                RunPollableEndpointCommand::class
+                ListAllAsynchronousEndpointsCommand::class,
+                RunAsynchronousEndpointCommand::class
             ]);
         }
     }

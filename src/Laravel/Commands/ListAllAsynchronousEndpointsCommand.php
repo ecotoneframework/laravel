@@ -8,14 +8,14 @@ use Ecotone\Modelling\CommandBus;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Helper\Table;
 
-class ListAllPollableEdnpointsCommand extends Command
+class ListAllAsynchronousEndpointsCommand extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'ecotone:list-all-pollable-endpoints';
+    protected $signature = 'ecotone:list-all-asynchronous-endpoints';
 
     /**
      * The console command description.
