@@ -8,6 +8,7 @@ use Ecotone\Messaging\Config\Annotation\FileSystemAnnotationRegistrationService;
 use Ecotone\Messaging\Config\ApplicationConfiguration;
 use Ecotone\Messaging\Config\ConfiguredMessagingSystem;
 use Ecotone\Messaging\Config\MessagingSystemConfiguration;
+use Ecotone\Messaging\Handler\ErrorHandler\RetryTemplateBuilder;
 use Ecotone\Messaging\Handler\Logger\EchoLogger;
 use Ecotone\Messaging\Handler\Logger\LoggingHandlerBuilder;
 use Illuminate\Foundation\Application;
@@ -41,7 +42,8 @@ class EcotoneProvider extends ServiceProvider
             mkdir($cacheDirectory, 0777, true);
         }
 
-        $serializationMediaType = Config::get("ecotone.serializationMediaType");
+        $serializationMediaType = Config::get("ecotone.defaultSerializationMediaType");
+
         $errorChannel = Config::get("ecotone.defaultErrorChannel");
 
         $applicationConfiguration = ApplicationConfiguration::createWithDefaults()
@@ -62,6 +64,16 @@ class EcotoneProvider extends ServiceProvider
         if ($errorChannel) {
             $applicationConfiguration = $applicationConfiguration
                 ->withDefaultErrorChannel($errorChannel);
+        }
+
+        $retryTemplate = Config::get("ecotone.defaultConnectionExceptionRetry");
+        if ($retryTemplate) {
+            $applicationConfiguration = $applicationConfiguration
+                ->withConnectionRetryTemplate(RetryTemplateBuilder::exponentialBackoffWithMaxDelay(
+                    $retryTemplate["initialDelay"],
+                    $retryTemplate["maxAttempts"],
+                    $retryTemplate["multiplier"]
+                ));
         }
 
         $configuration = MessagingSystemConfiguration::prepare(
