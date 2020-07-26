@@ -14,13 +14,11 @@ use Ecotone\Messaging\Handler\Logger\LoggingHandlerBuilder;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\Console\Logger\ConsoleLogger;
 
 class EcotoneProvider extends ServiceProvider
 {
+    const FRAMEWORK_NAMESPACE        = "Ecotone";
     const MESSAGING_SYSTEM_REFERENCE = ConfiguredMessagingSystem::class;
 
     /**
@@ -31,13 +29,13 @@ class EcotoneProvider extends ServiceProvider
     public function register()
     {
         $this->mergeConfigFrom(
-            __DIR__.'/config/ecotone.php', 'ecotone'
+            __DIR__ . '/config/ecotone.php', 'ecotone'
         );
 
-        $environment = App::environment();
-        $rootCatalog = App::basePath();
+        $environment            = App::environment();
+        $rootCatalog            = App::basePath();
         $isCachingConfiguration = $environment === "prod" ? true : Config::get("ecotone.cacheConfiguration");
-        $cacheDirectory = App::storagePath() . DIRECTORY_SEPARATOR . "framework" . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "data" . DIRECTORY_SEPARATOR . "ecotone";
+        $cacheDirectory         = App::storagePath() . DIRECTORY_SEPARATOR . "framework" . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "data" . DIRECTORY_SEPARATOR . "ecotone";
         if (!is_dir($cacheDirectory)) {
             mkdir($cacheDirectory, 0777, true);
         }
@@ -50,7 +48,7 @@ class EcotoneProvider extends ServiceProvider
             ->withEnvironment($environment)
             ->withLoadCatalog(Config::get("ecotone.loadAppNamespaces") ? "app" : "")
             ->withFailFast(false)
-            ->withNamespaces(array_merge([FileSystemAnnotationRegistrationService::FRAMEWORK_NAMESPACE], Config::get("ecotone.namespaces")));
+            ->withNamespaces(array_merge([self::FRAMEWORK_NAMESPACE], Config::get("ecotone.namespaces")));
 
         if ($isCachingConfiguration) {
             $applicationConfiguration = $applicationConfiguration
@@ -69,11 +67,13 @@ class EcotoneProvider extends ServiceProvider
         $retryTemplate = Config::get("ecotone.defaultConnectionExceptionRetry");
         if ($retryTemplate) {
             $applicationConfiguration = $applicationConfiguration
-                ->withConnectionRetryTemplate(RetryTemplateBuilder::exponentialBackoffWithMaxDelay(
-                    $retryTemplate["initialDelay"],
-                    $retryTemplate["maxAttempts"],
-                    $retryTemplate["multiplier"]
-                ));
+                ->withConnectionRetryTemplate(
+                    RetryTemplateBuilder::exponentialBackoffWithMaxDelay(
+                        $retryTemplate["initialDelay"],
+                        $retryTemplate["maxAttempts"],
+                        $retryTemplate["multiplier"]
+                    )
+                );
         }
 
         $configuration = MessagingSystemConfiguration::prepare(
@@ -83,19 +83,23 @@ class EcotoneProvider extends ServiceProvider
         );
 
         foreach ($configuration->getRegisteredGateways() as $registeredGateway) {
-            $this->app->singleton($registeredGateway->getReferenceName(), function ($app) use ($registeredGateway, $cacheDirectory) {
+            $this->app->singleton(
+                $registeredGateway->getReferenceName(), function ($app) use ($registeredGateway, $cacheDirectory) {
                 return ProxyGenerator::createFor(
                     $registeredGateway->getReferenceName(),
                     $app,
                     $registeredGateway->getInterfaceName(),
                     $cacheDirectory
                 );
-            });
+            }
+            );
         }
 
-        $this->app->singleton(self::MESSAGING_SYSTEM_REFERENCE, function() use ($configuration) {
+        $this->app->singleton(
+            self::MESSAGING_SYSTEM_REFERENCE, function () use ($configuration) {
             return $configuration->buildMessagingSystemFromConfiguration(new LaravelReferenceSearchService($this->app));
-        });
+        }
+        );
     }
 
     /**
@@ -105,25 +109,31 @@ class EcotoneProvider extends ServiceProvider
      */
     public function boot()
     {
-        $this->publishes([
-            __DIR__.'/config/ecotone.php' => config_path('ecotone.php'),
-        ]);
+        $this->publishes(
+            [
+                __DIR__ . '/config/ecotone.php' => config_path('ecotone.php'),
+            ]
+        );
 
         if (!$this->app->has(LoggingHandlerBuilder::LOGGER_REFERENCE)) {
-            $this->app->singleton(LoggingHandlerBuilder::LOGGER_REFERENCE, function(Application $app) {
+            $this->app->singleton(
+                LoggingHandlerBuilder::LOGGER_REFERENCE, function (Application $app) {
                 if ($app->runningInConsole()) {
                     return new CombinedLogger($app->get("log"), new EchoLogger());
                 }
 
                 return $app->get("log");
-            });
+            }
+            );
         }
 
         if ($this->app->runningInConsole()) {
-            $this->commands([
-                ListAllAsynchronousEndpointsCommand::class,
-                RunAsynchronousEndpointCommand::class
-            ]);
+            $this->commands(
+                [
+                    ListAllAsynchronousEndpointsCommand::class,
+                    RunAsynchronousEndpointCommand::class
+                ]
+            );
         }
     }
 }
