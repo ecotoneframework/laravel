@@ -1,5 +1,7 @@
 {
     "name": "ecotone/laravel",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "license": "MIT",
     "type": "library",
     "authors": [
@@ -32,6 +34,12 @@
         "php-coveralls/php-coveralls": "^2.1.0",
         "phpstan/phpstan": "^0.12"
     },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../ecotone"
+        }
+    ],
     "extra": {
         "laravel": {
             "providers": [
@@ -39,6 +47,9 @@
             ],
             "aliases": {
             }
+        },
+        "branch-alias": {
+            "dev-master": "0.11.x-dev"
         }
     }
 }

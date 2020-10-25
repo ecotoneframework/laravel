@@ -4,17 +4,20 @@ namespace Ecotone\Laravel;
 
 use Ecotone\Laravel\Commands\ListAllAsynchronousEndpointsCommand;
 use Ecotone\Laravel\Commands\RunAsynchronousEndpointCommand;
-use Ecotone\Messaging\Config\Annotation\FileSystemAnnotationRegistrationService;
 use Ecotone\Messaging\Config\ApplicationConfiguration;
 use Ecotone\Messaging\Config\ConfiguredMessagingSystem;
 use Ecotone\Messaging\Config\MessagingSystemConfiguration;
-use Ecotone\Messaging\Handler\ErrorHandler\RetryTemplateBuilder;
+use Ecotone\Messaging\Config\ConsoleCommandConfiguration;
+use Ecotone\Messaging\Gateway\MessagingEntrypoint;
 use Ecotone\Messaging\Handler\Logger\EchoLogger;
 use Ecotone\Messaging\Handler\Logger\LoggingHandlerBuilder;
+use Ecotone\Messaging\Handler\Recoverability\RetryTemplateBuilder;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
+use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Reference;
 
 class EcotoneProvider extends ServiceProvider
 {
@@ -94,6 +97,21 @@ class EcotoneProvider extends ServiceProvider
             }
             );
         }
+// @TODO one-time commands
+//        foreach ($configuration->getRegisteredOneTimeCommands() as $oneTimeCommandConfiguration) {
+//            $this->commands(array_map(function(OneTimeCommandConfiguration $oneTimeCommandConfiguration){
+//
+//            }, $configuration->getRegisteredOneTimeCommands()));
+//            $definition = new Definition();
+//            $definition->setClass(MessagingEntrypointCommand::class);
+//            $definition->addArgument($oneTimeCommandConfiguration->getName());
+//            $definition->addArgument($oneTimeCommandConfiguration->getChannelName());
+//            $definition->addArgument($oneTimeCommandConfiguration->getParameterNames());
+//            $definition->addArgument(new Reference(MessagingEntrypoint::class));
+//            $definition->addTag("console.command", ["command" => $oneTimeCommandConfiguration->getName()]);
+//
+//            $container->setDefinition($oneTimeCommandConfiguration->getChannelName(), $definition);
+//        }
 
         $this->app->singleton(
             self::MESSAGING_SYSTEM_REFERENCE, function () use ($configuration) {
