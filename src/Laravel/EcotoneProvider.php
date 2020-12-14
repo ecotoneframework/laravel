@@ -101,45 +101,39 @@ class EcotoneProvider extends ServiceProvider
             );
         }
 
-        foreach ($configuration->getRegisteredConsoleCommands() as $oneTimeCommandConfiguration) {
-//            $this->app->
-        }
-
-        foreach ($configuration->getRegisteredConsoleCommands() as $oneTimeCommandConfiguration) {
-//            $container->setDefinition($oneTimeCommandConfiguration->getChannelName(), $definition);
-
-//            $this->app->singleton($oneTimeCommandConfiguration->getName())->;
-
-            $commandName = $oneTimeCommandConfiguration->getName();
-            foreach ($oneTimeCommandConfiguration->getParameters() as $parameter) {
-                if ($parameter->getDefaultValue()) {
-                    $commandName .= ' {' . $parameter->getName() . '}=' . $parameter->getDefaultValue();
-                }else {
-                    $commandName .= ' {' . $parameter->getName() . '}';
+        if ($this->app->runningInConsole()) {
+            foreach ($configuration->getRegisteredConsoleCommands() as $oneTimeCommandConfiguration) {
+                $commandName = $oneTimeCommandConfiguration->getName();
+                foreach ($oneTimeCommandConfiguration->getParameters() as $parameter) {
+                    if ($parameter->getDefaultValue()) {
+                        $commandName .= ' {' . $parameter->getName() . '}=' . $parameter->getDefaultValue();
+                    }else {
+                        $commandName .= ' {' . $parameter->getName() . '}';
+                    }
                 }
+
+                $requestChannel = $oneTimeCommandConfiguration->getChannelName();
+                Artisan::command($commandName, function(ConfiguredMessagingSystem $configuredMessagingSystem) use ($requestChannel) {
+                    /** @var MessagingEntrypoint $messagingEntrypoint */
+                    $messagingEntrypoint = $configuredMessagingSystem->getGatewayByName(MessagingEntrypoint::class);
+
+                    /** @var ClosureCommand $self */
+                    $self = $this;
+                    $arguments = [];
+                    foreach ($self->arguments() as $argumentName => $value) {
+                        $arguments[ConsoleCommandModule::ECOTONE_COMMAND_PARAMETER_PREFIX . $argumentName] = $value;
+                    }
+
+                    /** @var ConsoleCommandResultSet $result */
+                    $result = $messagingEntrypoint->sendWithHeaders([], $arguments, $requestChannel);
+
+                    if ($result) {
+                        $self->table($result->getColumnHeaders(), $result->getRows());
+                    }
+
+                    return 0;
+                });
             }
-
-            $requestChannel = $oneTimeCommandConfiguration->getChannelName();
-            Artisan::command($commandName, function(ConfiguredMessagingSystem $configuredMessagingSystem) use ($requestChannel) {
-                /** @var MessagingEntrypoint $messagingEntrypoint */
-                $messagingEntrypoint = $configuredMessagingSystem->getGatewayByName(MessagingEntrypoint::class);
-
-                /** @var ClosureCommand $self */
-                $self = $this;
-                $arguments = [];
-                foreach ($self->arguments() as $argumentName => $value) {
-                    $arguments[ConsoleCommandModule::ECOTONE_COMMAND_PARAMETER_PREFIX . $argumentName] = $value;
-                }
-
-                /** @var ConsoleCommandResultSet $result */
-                $result = $messagingEntrypoint->sendWithHeaders([], $arguments, $requestChannel);
-
-                if ($result) {
-                    $self->table($result->getColumnHeaders(), $result->getRows());
-                }
-
-                return 0;
-            });
         }
 
         $this->app->singleton(
@@ -171,15 +165,6 @@ class EcotoneProvider extends ServiceProvider
 
                 return $app->get("log");
             }
-            );
-        }
-
-        if ($this->app->runningInConsole()) {
-            $this->commands(
-                [
-                    ListAllAsynchronousEndpointsCommand::class,
-                    RunAsynchronousEndpointCommand::class
-                ]
             );
         }
     }
