@@ -4,16 +4,19 @@ namespace Ecotone\Laravel;
 
 use Ecotone\Laravel\Commands\ListAllAsynchronousEndpointsCommand;
 use Ecotone\Laravel\Commands\RunAsynchronousEndpointCommand;
-use Ecotone\Messaging\Config\ApplicationConfiguration;
+use Ecotone\Messaging\Config\Annotation\ModuleConfiguration\ConsoleCommandModule;
 use Ecotone\Messaging\Config\ConfiguredMessagingSystem;
+use Ecotone\Messaging\Config\ConsoleCommandResultSet;
 use Ecotone\Messaging\Config\MessagingSystemConfiguration;
-use Ecotone\Messaging\Config\ConsoleCommandConfiguration;
+use Ecotone\Messaging\Config\ServiceConfiguration;
 use Ecotone\Messaging\Gateway\MessagingEntrypoint;
 use Ecotone\Messaging\Handler\Logger\EchoLogger;
 use Ecotone\Messaging\Handler\Logger\LoggingHandlerBuilder;
 use Ecotone\Messaging\Handler\Recoverability\RetryTemplateBuilder;
 use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Console\ClosureCommand;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
 use Symfony\Component\DependencyInjection\Definition;
@@ -47,7 +50,7 @@ class EcotoneProvider extends ServiceProvider
 
         $errorChannel = Config::get("ecotone.defaultErrorChannel");
 
-        $applicationConfiguration = ApplicationConfiguration::createWithDefaults()
+        $applicationConfiguration = ServiceConfiguration::createWithDefaults()
             ->withEnvironment($environment)
             ->withLoadCatalog(Config::get("ecotone.loadAppNamespaces") ? "app" : "")
             ->withFailFast(false)
@@ -97,21 +100,47 @@ class EcotoneProvider extends ServiceProvider
             }
             );
         }
-// @TODO one-time commands
-//        foreach ($configuration->getRegisteredOneTimeCommands() as $oneTimeCommandConfiguration) {
-//            $this->commands(array_map(function(OneTimeCommandConfiguration $oneTimeCommandConfiguration){
-//
-//            }, $configuration->getRegisteredOneTimeCommands()));
-//            $definition = new Definition();
-//            $definition->setClass(MessagingEntrypointCommand::class);
-//            $definition->addArgument($oneTimeCommandConfiguration->getName());
-//            $definition->addArgument($oneTimeCommandConfiguration->getChannelName());
-//            $definition->addArgument($oneTimeCommandConfiguration->getParameterNames());
-//            $definition->addArgument(new Reference(MessagingEntrypoint::class));
-//            $definition->addTag("console.command", ["command" => $oneTimeCommandConfiguration->getName()]);
-//
+
+        foreach ($configuration->getRegisteredConsoleCommands() as $oneTimeCommandConfiguration) {
+//            $this->app->
+        }
+
+        foreach ($configuration->getRegisteredConsoleCommands() as $oneTimeCommandConfiguration) {
 //            $container->setDefinition($oneTimeCommandConfiguration->getChannelName(), $definition);
-//        }
+
+//            $this->app->singleton($oneTimeCommandConfiguration->getName())->;
+
+            $commandName = $oneTimeCommandConfiguration->getName();
+            foreach ($oneTimeCommandConfiguration->getParameters() as $parameter) {
+                if ($parameter->getDefaultValue()) {
+                    $commandName .= ' {' . $parameter->getName() . '}=' . $parameter->getDefaultValue();
+                }else {
+                    $commandName .= ' {' . $parameter->getName() . '}';
+                }
+            }
+
+            $requestChannel = $oneTimeCommandConfiguration->getChannelName();
+            Artisan::command($commandName, function(ConfiguredMessagingSystem $configuredMessagingSystem) use ($requestChannel) {
+                /** @var MessagingEntrypoint $messagingEntrypoint */
+                $messagingEntrypoint = $configuredMessagingSystem->getGatewayByName(MessagingEntrypoint::class);
+
+                /** @var ClosureCommand $self */
+                $self = $this;
+                $arguments = [];
+                foreach ($self->arguments() as $argumentName => $value) {
+                    $arguments[ConsoleCommandModule::ECOTONE_COMMAND_PARAMETER_PREFIX . $argumentName] = $value;
+                }
+
+                /** @var ConsoleCommandResultSet $result */
+                $result = $messagingEntrypoint->sendWithHeaders([], $arguments, $requestChannel);
+
+                if ($result) {
+                    $self->table($result->getColumnHeaders(), $result->getRows());
+                }
+
+                return 0;
+            });
+        }
 
         $this->app->singleton(
             self::MESSAGING_SYSTEM_REFERENCE, function () use ($configuration) {

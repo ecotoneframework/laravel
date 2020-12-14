@@ -5,47 +5,40 @@ namespace Ecotone\Laravel;
 
 
 use Ecotone\Messaging\Config\Annotation\ModuleConfiguration\ConsoleCommandModule;
+use Ecotone\Messaging\Config\ConfiguredMessagingSystem;
+use Ecotone\Messaging\Config\ConsoleCommandResultSet;
 use Ecotone\Messaging\Gateway\MessagingEntrypoint;
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+use Illuminate\Console\Command;
 
 class MessagingEntrypointCommand extends Command
 {
-    private MessagingEntrypoint $messagingEntrypoint;
+    protected $signature;
+
     private string $requestChannel;
-    private string $name;
-    private array $parameterNames;
 
-    public function __construct(string $name, string $requestChannel, array $parameterNames, MessagingEntrypoint $messagingEntrypoint)
+    public function __construct(string $commandName, string $requestChannel)
     {
-        $this->name = $name;
-        $this->messagingEntrypoint = $messagingEntrypoint;
+        $this->signature = $commandName;
         $this->requestChannel = $requestChannel;
-        $this->parameterNames = $parameterNames;
-
         parent::__construct();
     }
 
-    protected function configure()
+    public function handle(ConfiguredMessagingSystem $configuredMessagingSystem)
     {
-        foreach ($this->parameterNames as $parameterName) {
-            $this->addArgument($parameterName, InputArgument::REQUIRED);
-        }
+        /** @var MessagingEntrypoint $messagingEntrypoint */
+        $messagingEntrypoint = $configuredMessagingSystem->getGatewayByName(MessagingEntrypoint::class);
 
-        $this
-            ->setName($this->name);
-    }
-
-    public function execute(InputInterface $input, OutputInterface $output)
-    {
         $arguments = [];
-        foreach ($input->getArguments() as $argumentName => $value) {
+        foreach ($this->getArguments() as $argumentName => $value) {
             $arguments[ConsoleCommandModule::ECOTONE_COMMAND_PARAMETER_PREFIX . $argumentName] = $value;
         }
 
-        $this->messagingEntrypoint->send($this->requestChannel, [], $arguments);
+        /** @var ConsoleCommandResultSet $result */
+        $result = $messagingEntrypoint->sendWithHeaders([], $arguments, $this->requestChannel);
+
+        if ($result) {
+            $this->table($result->getColumnHeaders(), $result->getRows());
+        }
 
         return 0;
     }
