@@ -9,6 +9,7 @@ use Ecotone\Messaging\Config\ConfiguredMessagingSystem;
 use Ecotone\Messaging\Config\ConsoleCommandResultSet;
 use Ecotone\Messaging\Config\MessagingSystemConfiguration;
 use Ecotone\Messaging\Config\ServiceConfiguration;
+use Ecotone\Messaging\ConfigurationVariableService;
 use Ecotone\Messaging\Gateway\MessagingEntrypoint;
 use Ecotone\Messaging\Handler\Logger\EchoLogger;
 use Ecotone\Messaging\Handler\Logger\LoggingHandlerBuilder;
@@ -19,8 +20,6 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
-use Symfony\Component\DependencyInjection\Definition;
-use Symfony\Component\DependencyInjection\Reference;
 
 class EcotoneProvider extends ServiceProvider
 {
@@ -43,7 +42,7 @@ class EcotoneProvider extends ServiceProvider
         $isCachingConfiguration = $environment === "prod" ? true : Config::get("ecotone.cacheConfiguration");
         $cacheDirectory         = App::storagePath() . DIRECTORY_SEPARATOR . "framework" . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "data" . DIRECTORY_SEPARATOR . "ecotone";
         if (!is_dir($cacheDirectory)) {
-            mkdir($cacheDirectory, 0777, true);
+            mkdir($cacheDirectory, 0775, true);
         }
 
         $serializationMediaType = Config::get("ecotone.defaultSerializationMediaType");
@@ -85,8 +84,14 @@ class EcotoneProvider extends ServiceProvider
         $configuration = MessagingSystemConfiguration::prepare(
             $rootCatalog,
             new LaravelReferenceSearchService($this->app),
+            new LaravelConfigurationVariableService(),
             $applicationConfiguration
         );
+
+        $this->app->singleton(
+            ConfigurationVariableService::REFERENCE_NAME, function () use ($configuration) {
+            return new LaravelConfigurationVariableService();
+        });
 
         foreach ($configuration->getRegisteredGateways() as $registeredGateway) {
             $this->app->singleton(
@@ -107,18 +112,19 @@ class EcotoneProvider extends ServiceProvider
                 foreach ($oneTimeCommandConfiguration->getParameters() as $parameter) {
                     if ($parameter->getDefaultValue()) {
                         $commandName .= ' {' . $parameter->getName() . '}=' . $parameter->getDefaultValue();
-                    }else {
+                    } else {
                         $commandName .= ' {' . $parameter->getName() . '}';
                     }
                 }
 
                 $requestChannel = $oneTimeCommandConfiguration->getChannelName();
-                Artisan::command($commandName, function(ConfiguredMessagingSystem $configuredMessagingSystem) use ($requestChannel) {
+                Artisan::command(
+                    $commandName, function (ConfiguredMessagingSystem $configuredMessagingSystem) use ($requestChannel) {
                     /** @var MessagingEntrypoint $messagingEntrypoint */
                     $messagingEntrypoint = $configuredMessagingSystem->getGatewayByName(MessagingEntrypoint::class);
 
                     /** @var ClosureCommand $self */
-                    $self = $this;
+                    $self      = $this;
                     $arguments = [];
                     foreach ($self->arguments() as $argumentName => $value) {
                         $arguments[ConsoleCommandModule::ECOTONE_COMMAND_PARAMETER_PREFIX . $argumentName] = $value;
@@ -132,15 +138,15 @@ class EcotoneProvider extends ServiceProvider
                     }
 
                     return 0;
-                });
+                }
+                );
             }
         }
 
         $this->app->singleton(
             self::MESSAGING_SYSTEM_REFERENCE, function () use ($configuration) {
             return $configuration->buildMessagingSystemFromConfiguration(new LaravelReferenceSearchService($this->app));
-        }
-        );
+        });
     }
 
     /**
