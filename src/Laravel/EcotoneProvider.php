@@ -4,15 +4,21 @@ namespace Ecotone\Laravel;
 
 use Ecotone\Laravel\Commands\ListAllAsynchronousEndpointsCommand;
 use Ecotone\Laravel\Commands\RunAsynchronousEndpointCommand;
-use Ecotone\Messaging\Config\Annotation\FileSystemAnnotationRegistrationService;
-use Ecotone\Messaging\Config\ApplicationConfiguration;
+use Ecotone\Messaging\Config\Annotation\ModuleConfiguration\ConsoleCommandModule;
 use Ecotone\Messaging\Config\ConfiguredMessagingSystem;
+use Ecotone\Messaging\Config\ConsoleCommandResultSet;
 use Ecotone\Messaging\Config\MessagingSystemConfiguration;
-use Ecotone\Messaging\Handler\ErrorHandler\RetryTemplateBuilder;
+use Ecotone\Messaging\Config\ServiceConfiguration;
+use Ecotone\Messaging\ConfigurationVariableService;
+use Ecotone\Messaging\Gateway\ConsoleCommandRunner;
+use Ecotone\Messaging\Gateway\MessagingEntrypoint;
 use Ecotone\Messaging\Handler\Logger\EchoLogger;
 use Ecotone\Messaging\Handler\Logger\LoggingHandlerBuilder;
+use Ecotone\Messaging\Handler\Recoverability\RetryTemplateBuilder;
 use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Console\ClosureCommand;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
 
@@ -37,14 +43,14 @@ class EcotoneProvider extends ServiceProvider
         $isCachingConfiguration = $environment === "prod" ? true : Config::get("ecotone.cacheConfiguration");
         $cacheDirectory         = App::storagePath() . DIRECTORY_SEPARATOR . "framework" . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "data" . DIRECTORY_SEPARATOR . "ecotone";
         if (!is_dir($cacheDirectory)) {
-            mkdir($cacheDirectory, 0777, true);
+            mkdir($cacheDirectory, 0775, true);
         }
 
         $serializationMediaType = Config::get("ecotone.defaultSerializationMediaType");
 
         $errorChannel = Config::get("ecotone.defaultErrorChannel");
 
-        $applicationConfiguration = ApplicationConfiguration::createWithDefaults()
+        $applicationConfiguration = ServiceConfiguration::createWithDefaults()
             ->withEnvironment($environment)
             ->withLoadCatalog(Config::get("ecotone.loadAppNamespaces") ? "app" : "")
             ->withFailFast(false)
@@ -79,8 +85,14 @@ class EcotoneProvider extends ServiceProvider
         $configuration = MessagingSystemConfiguration::prepare(
             $rootCatalog,
             new LaravelReferenceSearchService($this->app),
+            new LaravelConfigurationVariableService(),
             $applicationConfiguration
         );
+
+        $this->app->singleton(
+            ConfigurationVariableService::REFERENCE_NAME, function () use ($configuration) {
+            return new LaravelConfigurationVariableService();
+        });
 
         foreach ($configuration->getRegisteredGateways() as $registeredGateway) {
             $this->app->singleton(
@@ -95,11 +107,42 @@ class EcotoneProvider extends ServiceProvider
             );
         }
 
+        if ($this->app->runningInConsole()) {
+            foreach ($configuration->getRegisteredConsoleCommands() as $oneTimeCommandConfiguration) {
+                $commandName = $oneTimeCommandConfiguration->getName();
+                foreach ($oneTimeCommandConfiguration->getParameters() as $parameter) {
+                    if ($parameter->getDefaultValue()) {
+                        $commandName .= ' {' . $parameter->getName() . '}=' . $parameter->getDefaultValue();
+                    } else {
+                        $commandName .= ' {' . $parameter->getName() . '}';
+                    }
+                }
+
+                Artisan::command(
+                    $commandName, function (ConfiguredMessagingSystem $configuredMessagingSystem) {
+                    /** @var ConsoleCommandRunner $consoleCommandRunner */
+                    $consoleCommandRunner = $configuredMessagingSystem->getGatewayByName(ConsoleCommandRunner::class);
+
+                    /** @var ClosureCommand $self */
+                    $self      = $this;
+
+                    /** @var ConsoleCommandResultSet $result */
+                    $result = $consoleCommandRunner->sendWithHeaders($this->name, $self->arguments());
+
+                    if ($result) {
+                        $self->table($result->getColumnHeaders(), $result->getRows());
+                    }
+
+                    return 0;
+                }
+                );
+            }
+        }
+
         $this->app->singleton(
             self::MESSAGING_SYSTEM_REFERENCE, function () use ($configuration) {
             return $configuration->buildMessagingSystemFromConfiguration(new LaravelReferenceSearchService($this->app));
-        }
-        );
+        });
     }
 
     /**
@@ -124,15 +167,6 @@ class EcotoneProvider extends ServiceProvider
 
                 return $app->get("log");
             }
-            );
-        }
-
-        if ($this->app->runningInConsole()) {
-            $this->commands(
-                [
-                    ListAllAsynchronousEndpointsCommand::class,
-                    RunAsynchronousEndpointCommand::class
-                ]
             );
         }
     }

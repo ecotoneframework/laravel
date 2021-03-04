@@ -2,7 +2,7 @@ version: "2"
 
 services:
   app:
-    image: simplycodedsoftware/ci:7.4
+    image: simplycodedsoftware/php:8.0
     volumes:
       - "$PWD:/data/app"
       - "$HOME/.ssh:/home/deploy/.ssh"
