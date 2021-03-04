@@ -7,6 +7,7 @@ namespace Ecotone\Laravel;
 use Ecotone\Messaging\Config\Annotation\ModuleConfiguration\ConsoleCommandModule;
 use Ecotone\Messaging\Config\ConfiguredMessagingSystem;
 use Ecotone\Messaging\Config\ConsoleCommandResultSet;
+use Ecotone\Messaging\Gateway\ConsoleCommandRunner;
 use Ecotone\Messaging\Gateway\MessagingEntrypoint;
 use Illuminate\Console\Command;
 
@@ -25,16 +26,11 @@ class MessagingEntrypointCommand extends Command
 
     public function handle(ConfiguredMessagingSystem $configuredMessagingSystem)
     {
-        /** @var MessagingEntrypoint $messagingEntrypoint */
-        $messagingEntrypoint = $configuredMessagingSystem->getGatewayByName(MessagingEntrypoint::class);
-
-        $arguments = [];
-        foreach ($this->getArguments() as $argumentName => $value) {
-            $arguments[ConsoleCommandModule::ECOTONE_COMMAND_PARAMETER_PREFIX . $argumentName] = $value;
-        }
+        /** @var ConsoleCommandRunner $consoleCommandRunner */
+        $consoleCommandRunner = $configuredMessagingSystem->getGatewayByName(ConsoleCommandRunner::class);
 
         /** @var ConsoleCommandResultSet $result */
-        $result = $messagingEntrypoint->sendWithHeaders([], $arguments, $this->requestChannel);
+        $result = $consoleCommandRunner->execute($this->signature, $this->getArguments());
 
         if ($result) {
             $this->table($result->getColumnHeaders(), $result->getRows());
