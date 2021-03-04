@@ -10,6 +10,7 @@ use Ecotone\Messaging\Config\ConsoleCommandResultSet;
 use Ecotone\Messaging\Config\MessagingSystemConfiguration;
 use Ecotone\Messaging\Config\ServiceConfiguration;
 use Ecotone\Messaging\ConfigurationVariableService;
+use Ecotone\Messaging\Gateway\ConsoleCommandRunner;
 use Ecotone\Messaging\Gateway\MessagingEntrypoint;
 use Ecotone\Messaging\Handler\Logger\EchoLogger;
 use Ecotone\Messaging\Handler\Logger\LoggingHandlerBuilder;
@@ -117,21 +118,16 @@ class EcotoneProvider extends ServiceProvider
                     }
                 }
 
-                $requestChannel = $oneTimeCommandConfiguration->getChannelName();
                 Artisan::command(
-                    $commandName, function (ConfiguredMessagingSystem $configuredMessagingSystem) use ($requestChannel) {
-                    /** @var MessagingEntrypoint $messagingEntrypoint */
-                    $messagingEntrypoint = $configuredMessagingSystem->getGatewayByName(MessagingEntrypoint::class);
+                    $commandName, function (ConfiguredMessagingSystem $configuredMessagingSystem) {
+                    /** @var ConsoleCommandRunner $consoleCommandRunner */
+                    $consoleCommandRunner = $configuredMessagingSystem->getGatewayByName(ConsoleCommandRunner::class);
 
                     /** @var ClosureCommand $self */
                     $self      = $this;
-                    $arguments = [];
-                    foreach ($self->arguments() as $argumentName => $value) {
-                        $arguments[ConsoleCommandModule::ECOTONE_COMMAND_PARAMETER_PREFIX . $argumentName] = $value;
-                    }
 
                     /** @var ConsoleCommandResultSet $result */
-                    $result = $messagingEntrypoint->sendWithHeaders([], $arguments, $requestChannel);
+                    $result = $consoleCommandRunner->sendWithHeaders($this->name, $self->arguments());
 
                     if ($result) {
                         $self->table($result->getColumnHeaders(), $result->getRows());
