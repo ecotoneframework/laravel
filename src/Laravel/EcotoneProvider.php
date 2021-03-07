@@ -86,7 +86,8 @@ class EcotoneProvider extends ServiceProvider
             $rootCatalog,
             new LaravelReferenceSearchService($this->app),
             new LaravelConfigurationVariableService(),
-            $applicationConfiguration
+            $applicationConfiguration,
+            $isCachingConfiguration
         );
 
         $this->app->singleton(
