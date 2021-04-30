@@ -46,8 +46,6 @@ class EcotoneProvider extends ServiceProvider
             mkdir($cacheDirectory, 0775, true);
         }
 
-        $serializationMediaType = Config::get("ecotone.defaultSerializationMediaType");
-
         $errorChannel = Config::get("ecotone.defaultErrorChannel");
 
         $applicationConfiguration = ServiceConfiguration::createWithDefaults()
@@ -61,10 +59,17 @@ class EcotoneProvider extends ServiceProvider
                 ->withCacheDirectoryPath($cacheDirectory);
         }
 
+        $serializationMediaType = Config::get("ecotone.defaultSerializationMediaType");
         if ($serializationMediaType) {
             $applicationConfiguration = $applicationConfiguration
                 ->withDefaultSerializationMediaType($serializationMediaType);
         }
+        $serviceName = Config::get("ecotone.serviceName");
+        if ($serviceName) {
+            $applicationConfiguration = $applicationConfiguration
+                ->withServiceName($serviceName);
+        }
+
         if ($errorChannel) {
             $applicationConfiguration = $applicationConfiguration
                 ->withDefaultErrorChannel($errorChannel);

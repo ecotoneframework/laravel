@@ -12,5 +12,7 @@ return [
 //    What is the default error channel, where exceptions will be published
     'defaultErrorChannel' => null,
 //   Retry template when there is a problem with connecting to provider
-    'defaultConnectionExceptionRetry' => null
+    'defaultConnectionExceptionRetry' => null,
+    //    service name
+    'serviceName' => null,
 ];
