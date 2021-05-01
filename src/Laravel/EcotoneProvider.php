@@ -117,11 +117,14 @@ class EcotoneProvider extends ServiceProvider
             foreach ($configuration->getRegisteredConsoleCommands() as $oneTimeCommandConfiguration) {
                 $commandName = $oneTimeCommandConfiguration->getName();
                 foreach ($oneTimeCommandConfiguration->getParameters() as $parameter) {
-                    if ($parameter->getDefaultValue()) {
-                        $commandName .= ' {' . $parameter->getName() . '}=' . $parameter->getDefaultValue();
-                    } else {
-                        $commandName .= ' {' . $parameter->getName() . '}';
+                    $commandName .= $parameter->isOption() ? " {--" : " {";
+                    $commandName .= $parameter->getName();
+
+                    if ($parameter->hasDefaultValue()) {
+                        $commandName .= '=' . $parameter->getDefaultValue();
                     }
+
+                    $commandName .= "}";
                 }
 
                 Artisan::command(
