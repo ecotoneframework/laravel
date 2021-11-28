@@ -46,8 +46,6 @@ class EcotoneProvider extends ServiceProvider
             mkdir($cacheDirectory, 0775, true);
         }
 
-        $serializationMediaType = Config::get("ecotone.defaultSerializationMediaType");
-
         $errorChannel = Config::get("ecotone.defaultErrorChannel");
 
         $applicationConfiguration = ServiceConfiguration::createWithDefaults()
@@ -61,10 +59,17 @@ class EcotoneProvider extends ServiceProvider
                 ->withCacheDirectoryPath($cacheDirectory);
         }
 
+        $serializationMediaType = Config::get("ecotone.defaultSerializationMediaType");
         if ($serializationMediaType) {
             $applicationConfiguration = $applicationConfiguration
                 ->withDefaultSerializationMediaType($serializationMediaType);
         }
+        $serviceName = Config::get("ecotone.serviceName");
+        if ($serviceName) {
+            $applicationConfiguration = $applicationConfiguration
+                ->withServiceName($serviceName);
+        }
+
         if ($errorChannel) {
             $applicationConfiguration = $applicationConfiguration
                 ->withDefaultErrorChannel($errorChannel);
@@ -112,11 +117,14 @@ class EcotoneProvider extends ServiceProvider
             foreach ($configuration->getRegisteredConsoleCommands() as $oneTimeCommandConfiguration) {
                 $commandName = $oneTimeCommandConfiguration->getName();
                 foreach ($oneTimeCommandConfiguration->getParameters() as $parameter) {
-                    if ($parameter->getDefaultValue()) {
-                        $commandName .= ' {' . $parameter->getName() . '}=' . $parameter->getDefaultValue();
-                    } else {
-                        $commandName .= ' {' . $parameter->getName() . '}';
+                    $commandName .= $parameter->isOption() ? " {--" : " {";
+                    $commandName .= $parameter->getName();
+
+                    if ($parameter->hasDefaultValue()) {
+                        $commandName .= '=' . $parameter->getDefaultValue();
                     }
+
+                    $commandName .= "}";
                 }
 
                 Artisan::command(
@@ -128,7 +136,7 @@ class EcotoneProvider extends ServiceProvider
                     $self      = $this;
 
                     /** @var ConsoleCommandResultSet $result */
-                    $result = $consoleCommandRunner->execute($this->name, $self->arguments());
+                    $result = $consoleCommandRunner->execute($self->getName(), $self->arguments());
 
                     if ($result) {
                         $self->table($result->getColumnHeaders(), $result->getRows());
