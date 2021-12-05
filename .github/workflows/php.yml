@@ -1,4 +1,4 @@
-name: Ecotone Symfony
+name: Ecotone Laravel
 
 on: [push, pull_request]
 
