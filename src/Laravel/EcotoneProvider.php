@@ -96,7 +96,7 @@ class EcotoneProvider extends ServiceProvider
         );
 
         $this->app->singleton(
-            ConfigurationVariableService::REFERENCE_NAME, function () use ($configuration) {
+            ConfigurationVariableService::REFERENCE_NAME, function () {
             return new LaravelConfigurationVariableService();
         });
 

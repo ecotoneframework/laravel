@@ -1,0 +1,37 @@
+name: Ecotone Symfony
+
+on: [push, pull_request]
+
+jobs:
+  run:
+    runs-on: ${{ matrix.operating-system }}
+    strategy:
+      matrix:
+        operating-system: [ ubuntu-latest ]
+#        operating-system: [ ubuntu-latest, windows-latest, macOS-latest ]
+        php-versions: [ '8.0' ]
+    steps:
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-versions }}
+
+    - uses: actions/checkout@v2
+    
+    - name: Validate composer.json and composer.lock
+      run: composer validate
+    
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v2
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ matrix.php-versions }}-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-${{ matrix.php-versions }}-
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress
+
+    - name: Test PHPStan
+      run: vendor/bin/phpstan analyse
