@@ -99,6 +99,11 @@ class EcotoneProvider extends ServiceProvider
             ConfigurationVariableService::REFERENCE_NAME, function () {
             return new LaravelConfigurationVariableService();
         });
+        $this->app->singleton(
+            EloquentRepository::class, function () {
+                return new EloquentRepository();
+            }
+        );
 
         foreach ($configuration->getRegisteredGateways() as $registeredGateway) {
             $this->app->singleton(
