@@ -16,7 +16,7 @@ class EloquentRepository implements StandardRepository
 
     public function findBy(string $aggregateClassName, array $identifiers): ?object
     {
-        return call_user_func([$aggregateClassName, 'find', array_pop($identifiers)]);
+        return call_user_func([$aggregateClassName, 'find'], array_pop($identifiers));
     }
 
     public function save(array $identifiers, object $aggregate, array $metadata, ?int $versionBeforeHandling): void
