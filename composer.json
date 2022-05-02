@@ -32,7 +32,7 @@
     }
   },
   "require": {
-    "ecotone/ecotone": "~1.21.1",
+    "ecotone/ecotone": "~1.22.0",
     "laravel/framework": ">=7.0"
   },
   "require-dev": {
@@ -50,7 +50,7 @@
       "aliases": {}
     },
     "branch-alias": {
-      "dev-master": "1.21.1-dev"
+      "dev-master": "1.22.0-dev"
     }
   }
 }
