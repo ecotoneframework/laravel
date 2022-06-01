@@ -32,7 +32,7 @@
     }
   },
   "require": {
-    "ecotone/ecotone": "~1.22.6",
+    "ecotone/ecotone": "~1.22.7",
     "laravel/framework": ">=7.0"
   },
   "require-dev": {
@@ -40,7 +40,7 @@
     "behat/behat": "^3.3.1",
     "guzzlehttp/psr7": "^1.4",
     "php-coveralls/php-coveralls": "^2.1.0",
-    "phpstan/phpstan": "^0.12"
+    "phpstan/phpstan": "^1.7"
   },
   "extra": {
     "laravel": {
@@ -50,7 +50,7 @@
       "aliases": {}
     },
     "branch-alias": {
-      "dev-master": "1.22.6-dev"
+      "dev-master": "1.22.7-dev"
     }
   }
 }
