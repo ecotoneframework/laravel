@@ -11,10 +11,10 @@ jobs:
         php-versions: [ '8.0', '8.1' ]
         stability: [prefer-lowest, prefer-stable]
     steps:
-    - name: Setup PHP
+    - name: PHP ${{ matrix.php-versions }} - ${{ matrix.stability }}
       uses: shivammathur/setup-php@v2
       with:
-        php-version: PHP ${{ matrix.php-versions }} - ${{ matrix.stability }}
+        php-version: PHP ${{ matrix.php-versions }}
 
     - uses: actions/checkout@v2
     
