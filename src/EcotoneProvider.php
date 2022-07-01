@@ -2,16 +2,12 @@
 
 namespace Ecotone\Laravel;
 
-use Ecotone\Laravel\Commands\ListAllAsynchronousEndpointsCommand;
-use Ecotone\Laravel\Commands\RunAsynchronousEndpointCommand;
-use Ecotone\Messaging\Config\Annotation\ModuleConfiguration\ConsoleCommandModule;
 use Ecotone\Messaging\Config\ConfiguredMessagingSystem;
 use Ecotone\Messaging\Config\ConsoleCommandResultSet;
 use Ecotone\Messaging\Config\MessagingSystemConfiguration;
 use Ecotone\Messaging\Config\ServiceConfiguration;
 use Ecotone\Messaging\ConfigurationVariableService;
 use Ecotone\Messaging\Gateway\ConsoleCommandRunner;
-use Ecotone\Messaging\Gateway\MessagingEntrypoint;
 use Ecotone\Messaging\Handler\Logger\EchoLogger;
 use Ecotone\Messaging\Handler\Logger\LoggingHandlerBuilder;
 use Ecotone\Messaging\Handler\Recoverability\RetryTemplateBuilder;
@@ -35,14 +31,15 @@ class EcotoneProvider extends ServiceProvider
     public function register()
     {
         $this->mergeConfigFrom(
-            __DIR__ . '/config/ecotone.php', 'ecotone'
+            __DIR__ . '/../config/ecotone.php', 'ecotone'
         );
 
         $environment            = App::environment();
         $rootCatalog            = App::basePath();
         $isCachingConfiguration = $environment === "prod" ? true : Config::get("ecotone.cacheConfiguration");
-        $cacheDirectory         = App::storagePath() . DIRECTORY_SEPARATOR . "framework" . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "data" . DIRECTORY_SEPARATOR . "ecotone";
-        if (!is_dir($cacheDirectory)) {
+        $cacheDirectory         = App::storagePath() . "framework" . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "data" . DIRECTORY_SEPARATOR . "ecotone";
+
+        if (! is_dir($cacheDirectory)) {
             mkdir($cacheDirectory, 0775, true);
         }
 
@@ -121,6 +118,7 @@ class EcotoneProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             foreach ($configuration->getRegisteredConsoleCommands() as $oneTimeCommandConfiguration) {
                 $commandName = $oneTimeCommandConfiguration->getName();
+
                 foreach ($oneTimeCommandConfiguration->getParameters() as $parameter) {
                     $commandName .= $parameter->isOption() ? " {--" : " {";
                     $commandName .= $parameter->getName();

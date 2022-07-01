@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Ecotone\Laravel;
-
 
 use Psr\Log\AbstractLogger;
 use Psr\Log\LoggerInterface;
