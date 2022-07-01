@@ -14,7 +14,7 @@ jobs:
     - name: PHP ${{ matrix.php-versions }} - ${{ matrix.stability }}
       uses: shivammathur/setup-php@v2
       with:
-        php-version: PHP ${{ matrix.php-versions }}
+        php-version: ${{ matrix.php-versions }}
 
     - uses: actions/checkout@v2
     
