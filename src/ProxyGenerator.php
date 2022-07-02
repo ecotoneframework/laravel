@@ -2,15 +2,11 @@
 
 namespace Ecotone\Laravel;
 
-use Ecotone\Messaging\Config\ConfigurationException;
 use Ecotone\Messaging\Handler\Gateway\ProxyFactory;
-use Ecotone\SymfonyBundle\EcotoneSymfonyBundle;
 use Illuminate\Contracts\Foundation\Application;
-use ProxyManager\Configuration;
 use ProxyManager\Factory\RemoteObject\AdapterInterface;
 use ProxyManager\Factory\RemoteObjectFactory;
 use Ecotone\Messaging\Config\MessagingSystem;
-use Symfony\Component\DependencyInjection\Container;
 
 /**
  * Class ProxyGenerator
