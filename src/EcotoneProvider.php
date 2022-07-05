@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
+use const DIRECTORY_SEPARATOR;
 
 class EcotoneProvider extends ServiceProvider
 {
@@ -37,7 +38,7 @@ class EcotoneProvider extends ServiceProvider
         $environment            = App::environment();
         $rootCatalog            = App::basePath();
         $isCachingConfiguration = $environment === "prod" ? true : Config::get("ecotone.cacheConfiguration");
-        $cacheDirectory         = App::storagePath() . "framework" . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "data" . DIRECTORY_SEPARATOR . "ecotone";
+        $cacheDirectory         = App::storagePath() . DIRECTORY_SEPARATOR . "framework" . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "data" . DIRECTORY_SEPARATOR . "ecotone";
 
         if (! is_dir($cacheDirectory)) {
             mkdir($cacheDirectory, 0775, true);
@@ -166,8 +167,9 @@ class EcotoneProvider extends ServiceProvider
     {
         $this->publishes(
             [
-                __DIR__ . '/config/ecotone.php' => config_path('ecotone.php'),
-            ]
+                __DIR__ . '/../config/ecotone.php' => config_path('ecotone.php')
+            ],
+            'ecotone-config'
         );
 
         if (!$this->app->has(LoggingHandlerBuilder::LOGGER_REFERENCE)) {
