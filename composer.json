@@ -33,7 +33,7 @@
   },
   "require": {
     "php": "^8.0",
-    "ecotone/ecotone": "~1.32.0",
+    "ecotone/ecotone": "~1.32.1",
     "laravel/framework": "^9.0"
   },
   "require-dev": {
@@ -51,7 +51,7 @@
       ]
     },
     "branch-alias": {
-      "dev-master": "1.32.0-dev"
+      "dev-master": "1.32.1-dev"
     }
   }
 }
