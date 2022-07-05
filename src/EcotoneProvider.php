@@ -166,8 +166,9 @@ class EcotoneProvider extends ServiceProvider
     {
         $this->publishes(
             [
-                __DIR__ . '/config/ecotone.php' => config_path('ecotone.php'),
-            ]
+                __DIR__ . '/../config/ecotone.php' => config_path('ecotone.php')
+            ],
+            'ecotone-config'
         );
 
         if (!$this->app->has(LoggingHandlerBuilder::LOGGER_REFERENCE)) {
