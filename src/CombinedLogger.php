@@ -7,14 +7,9 @@ use Psr\Log\LoggerInterface;
 
 class CombinedLogger extends AbstractLogger implements LoggerInterface
 {
-    /**
-     * @var LoggerInterface
-     */
-    private $applicationLogger;
-    /**
-     * @var LoggerInterface
-     */
-    private $consoleLogger;
+    private LoggerInterface $applicationLogger;
+
+    private LoggerInterface $consoleLogger;
 
     public function __construct(LoggerInterface $applicationLogger, LoggerInterface $consoleLogger)
     {
@@ -22,7 +17,7 @@ class CombinedLogger extends AbstractLogger implements LoggerInterface
         $this->consoleLogger = $consoleLogger;
     }
 
-    public function log($level, $message, array $context = array())
+    public function log($level, $message, array $context = array()): void
     {
         $this->applicationLogger->log($level, $message, $context);
         $this->consoleLogger->log($level, $message, $context);

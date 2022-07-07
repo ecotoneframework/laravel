@@ -34,6 +34,7 @@
   "require": {
     "php": "^8.0",
     "ecotone/ecotone": "~1.32.1",
+    "psr/log": "^1.0|^2.0|^3.0",
     "laravel/framework": "^9.0"
   },
   "require-dev": {
