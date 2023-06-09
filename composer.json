@@ -33,7 +33,7 @@
         }
     },
     "require": {
-        "ecotone/ecotone": "~1.87.1",
+        "ecotone/ecotone": "~1.88.0",
         "laravel/framework": "^9.0|^10.0"
     },
     "require-dev": {
@@ -43,8 +43,7 @@
         "phpstan/phpstan": "^1.8",
         "orchestra/testbench": "^7.6",
         "wikimedia/composer-merge-plugin": "^2.0",
-        "symfony/expression-language": "^6.0",
-        "phpbench/phpbench": "^1.2"
+        "symfony/expression-language": "^6.0"
     },
     "extra": {
         "laravel": {
@@ -53,7 +52,7 @@
             ]
         },
         "branch-alias": {
-            "dev-main": "1.87.1-dev"
+            "dev-main": "1.88.0-dev"
         },
         "ecotone": {
             "repository": "laravel"
@@ -68,9 +67,6 @@
         "tests:phpstan": "vendor/bin/phpstan",
         "tests:phpunit": [
             "vendor/bin/phpunit"
-        ],
-        "tests:phpbench": [
-            "vendor/bin/phpbench run tests/Application/Benchmark --bootstrap=./vendor/autoload.php"
         ],
         "tests:ci": [
             "@tests:phpstan",
