@@ -21,7 +21,6 @@ use Ecotone\Messaging\ConfigurationVariableService;
 
 use Ecotone\Messaging\Gateway\ConsoleCommandRunner;
 
-use Ecotone\Messaging\Handler\Gateway\ProxyFactory;
 use Ecotone\Messaging\Handler\Logger\EchoLogger;
 use Ecotone\Messaging\Handler\Logger\LoggingHandlerBuilder;
 use Ecotone\Messaging\Handler\Recoverability\RetryTemplateBuilder;
@@ -145,11 +144,6 @@ class EcotoneProvider extends ServiceProvider
             ServiceCacheConfiguration::REFERENCE_NAME,
             fn () => $serviceCacheConfiguration
         );
-
-        $this->app->singleton(ProxyFactory::class, function (Application $app) {
-            $cacheConfiguration = $app->get(ServiceCacheConfiguration::REFERENCE_NAME);
-            return new ProxyFactory($cacheConfiguration);
-        });
 
         if ($this->app->runningInConsole()) {
             foreach ($definitionHolder->getRegisteredCommands() as $oneTimeCommandConfiguration) {
