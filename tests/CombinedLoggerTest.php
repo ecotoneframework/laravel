@@ -9,6 +9,10 @@ use Psr\Log\LoggerInterface;
 /**
  * @internal
  */
+/**
+ * licence Apache-2.0
+ * @internal
+ */
 class CombinedLoggerTest extends TestCase
 {
     public function test_it_proxies_logs()

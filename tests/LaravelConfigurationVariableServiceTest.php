@@ -9,6 +9,10 @@ use Orchestra\Testbench\TestCase;
 /**
  * @internal
  */
+/**
+ * licence Apache-2.0
+ * @internal
+ */
 class LaravelConfigurationVariableServiceTest extends TestCase
 {
     public function test_it_proxies_to_laravel_configuration_service()

@@ -10,6 +10,10 @@ use Orchestra\Testbench\TestCase;
 /**
  * @internal
  */
+/**
+ * licence Apache-2.0
+ * @internal
+ */
 class EloquentRepositoryTest extends TestCase
 {
     public function test_it_does_not_support_non_models()

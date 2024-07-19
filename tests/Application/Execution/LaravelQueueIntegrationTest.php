@@ -24,6 +24,10 @@ use Test\Ecotone\Laravel\Fixture\AsynchronousMessageHandler\ExampleEvent;
 /**
  * @internal
  */
+/**
+ * licence Apache-2.0
+ * @internal
+ */
 final class LaravelQueueIntegrationTest extends TestCase
 {
     public function setUp(): void

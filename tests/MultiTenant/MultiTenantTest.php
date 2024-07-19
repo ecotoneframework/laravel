@@ -19,6 +19,10 @@ require __DIR__ . '/boostrap.php';
 /**
  * @internal
  */
+/**
+ * licence Apache-2.0
+ * @internal
+ */
 final class MultiTenantTest extends TestCase
 {
     private Application $app;
