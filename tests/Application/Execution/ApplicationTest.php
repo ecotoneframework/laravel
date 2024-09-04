@@ -12,6 +12,7 @@ use Illuminate\Foundation\Http\Kernel;
 use Illuminate\Foundation\Testing\TestCase;
 use Test\Ecotone\Laravel\Fixture\User\User;
 use Test\Ecotone\Laravel\Fixture\User\UserRepository;
+use TiMacDonald\Log\LogFake;
 
 /**
  * @internal
@@ -84,6 +85,35 @@ final class ApplicationTest extends TestCase
         self::assertInstanceOf(
             MessagingTestSupport::class,
             $messagingSystem->getGatewayByName(MessagingTestSupport::class)
+        );
+    }
+
+    public function test_logs_are_collected()
+    {
+        $app = $this->createApplication();
+        /** @var CommandBus $commandBus */
+        $commandBus = $app->get(CommandBus::class);
+        /** @var QueryBus $queryBus */
+        $queryBus = $app->get(QueryBus::class);
+
+        $amount = 123;
+        $commandBus->sendWithRouting('setAmount', ['amount' => $amount]);
+
+        $logFake = LogFake::bind();
+
+        $this->assertEquals(
+            $amount,
+            $queryBus->sendWithRouting('getAmount')
+        );
+
+        $logs = $logFake->allLogs();
+        $this->assertStringContainsString(
+            'Sending Query Message',
+            $logs[0]->message
+        );
+        $this->assertStringContainsString(
+            'Executing Query Handler',
+            $logs[1]->message
         );
     }
 }
