@@ -38,20 +38,20 @@
         }
     },
     "require": {
-        "ecotone/ecotone": "~1.251.1",
-        "laravel/framework": "^9.5.2|^10.0|^11.0"
+        "ecotone/ecotone": "~1.252.0",
+        "laravel/framework": "^9.5.2|^10.0|^11.0|^12.0|^13.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.6",
+        "phpunit/phpunit": "^9.6|^10.5|^11.0",
         "behat/behat": "^3.10",
         "guzzlehttp/psr7": "^2.0",
         "phpstan/phpstan": "^1.8",
-        "orchestra/testbench": "^7.6|^8.0|^9.0",
+        "orchestra/testbench": "^8.0|^9.0|^10.0|^11.0",
         "wikimedia/composer-merge-plugin": "^2.1",
         "symfony/expression-language": "^6.0|^7.0",
-        "nesbot/carbon": "^2.71",
+        "nesbot/carbon": "^2.71|^3.0",
         "moneyphp/money": "^4.1.0",
-        "ecotone/dbal": "~1.251.1",
+        "ecotone/dbal": "~1.252.0",
         "timacdonald/log-fake": "^2.0"
     },
     "extra": {
@@ -61,7 +61,7 @@
             ]
         },
         "branch-alias": {
-            "dev-main": "1.251.1-dev"
+            "dev-main": "1.252.0-dev"
         },
         "ecotone": {
             "repository": "laravel"
@@ -82,12 +82,12 @@
                 "description": "Allows to use Enterprise features of Ecotone. For more information please write to support@simplycodedsoftware.com"
             }
         },
-        "release-time": "2025-03-30 08:54:22"
+        "release-time": "2025-04-03 15:42:26"
     },
     "scripts": {
         "tests:phpstan": "vendor/bin/phpstan",
         "tests:phpunit": [
-            "vendor/bin/phpunit"
+            "vendor/bin/phpunit --no-coverage"
         ],
         "tests:ci": [
             "@tests:phpstan",
