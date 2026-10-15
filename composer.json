@@ -32,6 +32,7 @@
     "description": "Ecotone for Laravel — CQRS, Event Sourcing, Sagas, Durable Workflows, and Outbox on top of Laravel Queue, via PHP attributes.",
     "autoload": {
         "psr-4": {
+            "Ecotone\\Api\\Laravel\\": "Api/",
             "Ecotone\\Laravel\\": "src"
         }
     },
@@ -44,18 +45,21 @@
         }
     },
     "require": {
-        "ecotone/ecotone": "~1.328.2",
-        "laravel/framework": "^9.5.2|^10.0|^11.0|^12.0|^13.0"
+        "ecotone/ecotone": "~2.0.0-beta.2",
+        "laravel/framework": "^11.0|^12.0|^13.0"
+    },
+    "suggest": {
+        "ecotone/dbal": "Enables DBAL integration, database repositories, multi-tenant connections via LaravelConnectionReference, and the DbalModule for transactional outbox, sagas, and event sourcing backed by relational databases."
     },
     "require-dev": {
         "phpunit/phpunit": "^10.5|^11.0|^12.0",
         "guzzlehttp/psr7": "^2.0|^3.0",
-        "phpstan/phpstan": "^1.8|^2.0",
-        "orchestra/testbench": "^8.0|^9.0|^10.0|^11.0",
+        "phpstan/phpstan": "^2.1",
+        "orchestra/testbench": "^9.0|^10.0|^11.0",
         "symfony/expression-language": "^6.4|^7.0|^8.0",
         "nesbot/carbon": "^2.71|^3.0",
         "moneyphp/money": "^4.1.0",
-        "ecotone/dbal": "~1.328.2",
+        "ecotone/dbal": "~2.0.0-beta.2",
         "doctrine/dbal": "^4.0",
         "timacdonald/log-fake": "^2.0"
     },
@@ -66,7 +70,7 @@
             ]
         },
         "branch-alias": {
-            "dev-main": "1.328.x-dev"
+            "dev-main": "2.0.x-dev"
         },
         "ecotone": {
             "repository": "laravel"
@@ -82,7 +86,7 @@
                 "description": "Allows to use Enterprise features of Ecotone. For more information please write to support@simplycodedsoftware.com"
             }
         },
-        "release-time": "2026-10-10 11:29:09"
+        "release-time": "2026-10-15 05:30:04"
     },
     "scripts": {
         "tests:phpstan": "vendor/bin/phpstan",
