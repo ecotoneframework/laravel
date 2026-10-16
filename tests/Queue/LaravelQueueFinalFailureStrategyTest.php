@@ -10,11 +10,11 @@ use Ecotone\Api\Attribute\CommandHandler;
 use Ecotone\Api\Attribute\QueryHandler;
 use Ecotone\Api\ExtensionObject\ExecutionPollingMetadata;
 use Ecotone\Api\ExtensionObject\FinalFailureStrategy;
-use Ecotone\Api\ExtensionObject\ServiceConfiguration;
 use Ecotone\Api\Laravel\LaravelQueueMessageChannelBuilder;
 use Ecotone\Api\Lite\EcotoneLite;
 use Ecotone\Api\Messaging\MessageHeaders;
 use Ecotone\Messaging\Config\ConfigurationException;
+use Ecotone\Test\ChannelTestSupport;
 use Exception;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Http\Kernel;
@@ -55,18 +55,15 @@ final class LaravelQueueFinalFailureStrategyTest extends TestCase
         $ecotoneTestSupport = EcotoneLite::bootstrapFlowTesting(
             [FailingService::class],
             $this->getContainer(),
-            ServiceConfiguration::createWithDefaults()->withEnabledModulePackageNames([])
-                ->withExtensionObjects([
-                    LaravelQueueMessageChannelBuilder::create('async', 'database')
-                        ->withFinalFailureStrategy(FinalFailureStrategy::RESEND),
-                ])
+            extensionObjects: [LaravelQueueMessageChannelBuilder::create('async', 'database')->withFinalFailureStrategy(FinalFailureStrategy::RESEND)],
+            enabledModules: [],
         );
 
         $ecotoneTestSupport->sendCommandWithRouting('execute.failing_command', new FailingCommand('some_1'));
         $ecotoneTestSupport->sendCommandWithRouting('execute.failing_command', new FailingCommand('some_2'));
         $ecotoneTestSupport->run('async', ExecutionPollingMetadata::createWithTestingSetup(stopOnError: false));
 
-        $messageChannel = $ecotoneTestSupport->getMessageChannel('async');
+        $messageChannel = ChannelTestSupport::of($ecotoneTestSupport)->getMessageChannel('async');
         // For Laravel Queue, resend uses job->release() which puts message back in queue
         // Laravel doesn't distinguish between beginning/end positioning - behavior is transport-specific
         $this->assertNotNull($messageChannel->receive());
@@ -79,11 +76,8 @@ final class LaravelQueueFinalFailureStrategyTest extends TestCase
         EcotoneLite::bootstrapFlowTesting(
             [FailingService::class],
             $this->getContainer(),
-            ServiceConfiguration::createWithDefaults()->withEnabledModulePackageNames([])
-                ->withExtensionObjects([
-                    LaravelQueueMessageChannelBuilder::create('async', 'database')
-                        ->withFinalFailureStrategy(FinalFailureStrategy::RELEASE),
-                ])
+            extensionObjects: [LaravelQueueMessageChannelBuilder::create('async', 'database')->withFinalFailureStrategy(FinalFailureStrategy::RELEASE)],
+            enabledModules: [],
         );
     }
 
@@ -96,10 +90,8 @@ final class LaravelQueueFinalFailureStrategyTest extends TestCase
         $ecotoneTestSupport = EcotoneLite::bootstrapFlowTesting(
             [DelayedService::class],
             $container,
-            ServiceConfiguration::createWithDefaults()->withEnabledModulePackageNames([])
-                ->withExtensionObjects([
-                    LaravelQueueMessageChannelBuilder::create('async', 'database'),
-                ])
+            extensionObjects: [LaravelQueueMessageChannelBuilder::create('async', 'database')],
+            enabledModules: [],
         );
 
         $ecotoneTestSupport->sendCommandWithRouting('execute.delayed_command', new DelayedCommand('test_1'), metadata: [
