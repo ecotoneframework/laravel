@@ -5,20 +5,18 @@ declare(strict_types=1);
 namespace Ecotone\Laravel\Config;
 
 use Ecotone\AnnotationFinder\AnnotationFinder;
-use Ecotone\Api\Attribute\ModuleAnnotation;
-use Ecotone\Api\Dbal\ExtensionObject\MultiTenantConfiguration;
-use Ecotone\Api\ExtensionObject\ModulePackageList;
-use Ecotone\Api\Laravel\LaravelConnectionReference;
 use Ecotone\Dbal\MultiTenant\HeaderBasedMultiTenantConnectionFactory;
+use Ecotone\Dbal\MultiTenant\MultiTenantConfiguration;
+use Ecotone\Messaging\Attribute\ModuleAnnotation;
 use Ecotone\Messaging\Config\Annotation\AnnotationModule;
 use Ecotone\Messaging\Config\Annotation\ModuleConfiguration\ExtensionObjectResolver;
 use Ecotone\Messaging\Config\Annotation\ModuleConfiguration\NoExternalConfigurationModule;
 use Ecotone\Messaging\Config\Configuration;
 use Ecotone\Messaging\Config\Container\Definition;
+use Ecotone\Messaging\Config\ModulePackageList;
 use Ecotone\Messaging\Config\ModuleReferenceSearchService;
 use Ecotone\Messaging\Handler\InterfaceToCallRegistry;
-use Ecotone\Messaging\Handler\ServiceActivator\MessageProcessorActivatorBuilder;
-use Ecotone\Messaging\Support\LicensingException;
+use Ecotone\Messaging\Handler\ServiceActivator\ServiceActivatorBuilder;
 use Interop\Queue\ConnectionFactory;
 
 #[ModuleAnnotation]
@@ -34,20 +32,16 @@ final class LaravelConnectionModule extends NoExternalConfigurationModule implem
 
     public function prepare(Configuration $messagingConfiguration, array $extensionObjects, ModuleReferenceSearchService $moduleReferenceSearchService, InterfaceToCallRegistry $interfaceToCallRegistry): void
     {
-        $laravelConnections = ExtensionObjectResolver::resolve(LaravelConnectionReference::class, $extensionObjects);
-        foreach ($laravelConnections as $connection) {
-            LaravelConnectionDbalGuard::assertDbalInstalledFor("LaravelConnectionReference::create('{$connection->laravelConnectionName}')");
-        }
-
         if (! class_exists(HeaderBasedMultiTenantConnectionFactory::class)) {
             return;
         }
 
         $laravelRelatedMultiTenantConfigurations = [];
+        $laravelConnections = ExtensionObjectResolver::resolve(LaravelConnectionReference::class, $extensionObjects);
         $multiTenantConfigurations = ExtensionObjectResolver::resolve(MultiTenantConfiguration::class, $extensionObjects);
 
         foreach ($multiTenantConfigurations as $multiTenantConfiguration) {
-            foreach ($multiTenantConfiguration->tenantToConnectionMapping as $connectionReference) {
+            foreach ($multiTenantConfiguration->getTenantToConnectionMapping() as $connectionReference) {
                 if ($connectionReference instanceof LaravelConnectionReference) {
                     $laravelConnections[] = $connectionReference;
                     $laravelRelatedMultiTenantConfigurations[$multiTenantConfiguration->getReferenceName()] = $multiTenantConfiguration;
@@ -72,14 +66,6 @@ final class LaravelConnectionModule extends NoExternalConfigurationModule implem
             );
         }
 
-        if ($laravelRelatedMultiTenantConfigurations === []) {
-            return;
-        }
-
-        if (! $messagingConfiguration->isRunningForEnterpriseLicence()) {
-            throw LicensingException::create('Laravel multi-tenant database switching requires Ecotone Enterprise licence. See https://docs.ecotone.tech/enterprise.');
-        }
-
         $messagingConfiguration->registerServiceDefinition(
             LaravelTenantDatabaseSwitcher::class,
             new Definition(
@@ -92,13 +78,18 @@ final class LaravelConnectionModule extends NoExternalConfigurationModule implem
             )
         );
         $messagingConfiguration->registerMessageHandler(
-            MessageProcessorActivatorBuilder::createForMethod(LaravelTenantDatabaseSwitcher::class, 'switchOn')
+            ServiceActivatorBuilder::create(LaravelTenantDatabaseSwitcher::class, 'switchOn')
                 ->withInputChannelName(HeaderBasedMultiTenantConnectionFactory::TENANT_ACTIVATED_CHANNEL_NAME)
         );
         $messagingConfiguration->registerMessageHandler(
-            MessageProcessorActivatorBuilder::createForMethod(LaravelTenantDatabaseSwitcher::class, 'switchOff')
+            ServiceActivatorBuilder::create(LaravelTenantDatabaseSwitcher::class, 'switchOff')
                 ->withInputChannelName(HeaderBasedMultiTenantConnectionFactory::TENANT_DEACTIVATED_CHANNEL_NAME)
         );
+    }
+
+    public function canHandle($extensionObject): bool
+    {
+        return $extensionObject instanceof LaravelConnectionReference || $extensionObject instanceof MultiTenantConfiguration;
     }
 
     public function getModulePackageName(): string

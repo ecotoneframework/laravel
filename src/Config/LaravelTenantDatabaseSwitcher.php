@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Ecotone\Laravel\Config;
 
-use Ecotone\Api\ExtensionObject\ConnectionReference;
-use Ecotone\Api\Laravel\LaravelConnectionReference;
+use Ecotone\Messaging\Config\ConnectionReference;
 use Illuminate\Support\Facades\Config;
 
 /**
@@ -27,7 +26,7 @@ final class LaravelTenantDatabaseSwitcher
     public function switchOn(string|ConnectionReference $activatedConnection): void
     {
         if ($activatedConnection instanceof LaravelConnectionReference) {
-            Config::set('database.default', $activatedConnection->laravelConnectionName);
+            Config::set('database.default', $activatedConnection->getLaravelConnectionName());
         }
     }
 

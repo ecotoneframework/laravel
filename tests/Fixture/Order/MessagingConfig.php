@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Fixture\Order;
 
-use Ecotone\Api\Attribute\ServiceContext;
-use Ecotone\Api\Laravel\LaravelQueueMessageChannelBuilder;
+use Ecotone\Laravel\Queue\LaravelQueueMessageChannelBuilder;
+use Ecotone\Messaging\Attribute\ServiceContext;
 
 /**
  * licence Apache-2.0

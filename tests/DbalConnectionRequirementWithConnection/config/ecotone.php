@@ -1,10 +1,12 @@
 <?php
 
-use Ecotone\Api\ExtensionObject\ModulePackageList;
+use Ecotone\Messaging\Config\ModulePackageList;
 
 return [
     'namespaces' => [],
-    'enabledModulePackageNames' => [ModulePackageList::LARAVEL_PACKAGE,
-        ModulePackageList::DBAL_PACKAGE, ],
+    'skippedModulePackageNames' => ModulePackageList::allPackagesExcept([
+        ModulePackageList::LARAVEL_PACKAGE,
+        ModulePackageList::DBAL_PACKAGE,
+    ]),
     'test' => false,
 ];

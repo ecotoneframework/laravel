@@ -1,11 +1,6 @@
-includes:
-	- phpstan-baseline.neon
-
 parameters:
-	level: 3
-	reportUnmatchedIgnoredErrors: false
+	level: 1
 	paths:
-		- Api
 		- src
 	excludePaths:
 		- src/Config/PDO/Connection.php

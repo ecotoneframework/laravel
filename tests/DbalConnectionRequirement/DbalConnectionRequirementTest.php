@@ -9,7 +9,6 @@ use Ecotone\Laravel\EcotoneProvider;
 use Ecotone\Messaging\Config\ConfigurationException;
 use Illuminate\Foundation\Http\Kernel;
 use PHPUnit\Framework\TestCase;
-use Test\Ecotone\Laravel\RestoresLaravelHandlers;
 
 /**
  * licence Apache-2.0
@@ -17,8 +16,6 @@ use Test\Ecotone\Laravel\RestoresLaravelHandlers;
  */
 final class DbalConnectionRequirementTest extends TestCase
 {
-    use RestoresLaravelHandlers;
-
     public function test_throws_configuration_exception_when_dbal_connection_factory_is_not_configured(): void
     {
         $this->markTestSkipped('to be done for Laravel');
@@ -37,7 +34,7 @@ final class DbalConnectionRequirementTest extends TestCase
 
         self::assertTrue($exceptionThrown, 'Expected ConfigurationException to be thrown');
         self::assertStringContainsString(
-            "Dbal module requires 'Ecotone\Api\Dbal\DbalConnectionFactory' to be configured",
+            "Dbal module requires 'Enqueue\Dbal\DbalConnectionFactory' to be configured",
             $exceptionMessage
         );
     }

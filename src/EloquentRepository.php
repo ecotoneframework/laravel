@@ -2,13 +2,13 @@
 
 namespace Ecotone\Laravel;
 
-use Ecotone\Api\Modelling\StateStoredRepository;
+use Ecotone\Modelling\StandardRepository;
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * licence Apache-2.0
  */
-class EloquentRepository implements StateStoredRepository
+class EloquentRepository implements StandardRepository
 {
     public function canHandle(string $aggregateClassName): bool
     {

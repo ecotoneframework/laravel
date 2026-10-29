@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Test\Ecotone\Laravel\Fixture\User;
 
-use Ecotone\Api\Attribute\Identifier;
-use Ecotone\Api\Attribute\Repository;
+use Ecotone\Modelling\Attribute\Identifier;
+use Ecotone\Modelling\Attribute\Repository;
 
 /**
  * licence Apache-2.0

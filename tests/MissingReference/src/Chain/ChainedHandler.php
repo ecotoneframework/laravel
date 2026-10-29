@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\MissingReference\Laravel\Chain;
 
-use Ecotone\Api\Attribute\CommandHandler;
+use Ecotone\Modelling\Attribute\CommandHandler;
 
 /**
  * licence Apache-2.0

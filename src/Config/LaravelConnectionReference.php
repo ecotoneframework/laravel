@@ -2,13 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Ecotone\Api\Laravel;
+namespace Ecotone\Laravel\Config;
 
-use Ecotone\Api\Dbal\ExtensionObject\DbalConnectionReference;
-use Ecotone\Api\ExtensionObject\ConnectionReference;
-use Ecotone\Laravel\Config\LaravelConnectionDbalGuard;
+use Ecotone\Messaging\Config\ConnectionReference;
 use Ecotone\Messaging\Config\Container\DefinedObject;
 use Ecotone\Messaging\Config\Container\Definition;
+use Enqueue\Dbal\DbalConnectionFactory;
 
 /**
  * licence Apache-2.0
@@ -16,7 +15,7 @@ use Ecotone\Messaging\Config\Container\Definition;
 final class LaravelConnectionReference extends ConnectionReference implements DefinedObject
 {
     private function __construct(
-        public readonly string $laravelConnectionName,
+        private string $laravelConnectionName,
         string $referenceName,
     ) {
         parent::__construct($referenceName, $this->laravelConnectionName);
@@ -29,9 +28,12 @@ final class LaravelConnectionReference extends ConnectionReference implements De
 
     public static function defaultConnection(string $connectionName): self
     {
-        LaravelConnectionDbalGuard::assertDbalInstalledFor("LaravelConnectionReference::defaultConnection('{$connectionName}')");
+        return new self($connectionName, DbalConnectionFactory::class);
+    }
 
-        return new self($connectionName, DbalConnectionReference::DEFAULT);
+    public function getLaravelConnectionName(): string
+    {
+        return $this->laravelConnectionName;
     }
 
     public function getDefinition(): Definition

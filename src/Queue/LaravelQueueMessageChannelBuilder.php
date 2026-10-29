@@ -2,22 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Ecotone\Api\Laravel;
+namespace Ecotone\Laravel\Queue;
 
-use Ecotone\Api\ExtensionObject\FinalFailureStrategy;
-use Ecotone\Api\ExtensionObject\MediaType;
-use Ecotone\Laravel\Queue\LaravelQueueAcknowledgementCallback;
-use Ecotone\Laravel\Queue\LaravelQueueMessageChannel;
 use Ecotone\Messaging\Channel\MessageChannelWithSerializationBuilder;
 use Ecotone\Messaging\Channel\PollableChannel\Serialization\OutboundMessageConverter;
 use Ecotone\Messaging\Config\Container\Definition;
 use Ecotone\Messaging\Config\Container\MessagingContainerBuilder;
 use Ecotone\Messaging\Config\Container\Reference;
 use Ecotone\Messaging\Conversion\ConversionService;
+use Ecotone\Messaging\Conversion\MediaType;
+use Ecotone\Messaging\Endpoint\FinalFailureStrategy;
 use Ecotone\Messaging\MessageConverter\DefaultHeaderMapper;
 use Ecotone\Messaging\MessageConverter\HeaderMapper;
 use Ecotone\Messaging\Support\Assert;
-use Ecotone\Messaging\Support\MessageBuilder;
 use Illuminate\Support\Facades\Config;
 
 /**
@@ -58,6 +55,7 @@ final class LaravelQueueMessageChannelBuilder implements MessageChannelWithSeria
     }
 
     /**
+     * @param string $headerMapper
      * @return static
      */
     public function withHeaderMapping(string $headerMapper): self
@@ -110,11 +108,9 @@ final class LaravelQueueMessageChannelBuilder implements MessageChannelWithSeria
                 $this->acknowledgeMode,
                 new Definition(OutboundMessageConverter::class, [
                     $this->headerMapper->getDefinition(),
-                    new Reference(MessageBuilder::class),
                     $this->defaultOutboundConversionMediaType?->getDefinition(),
                 ]),
                 new Reference(ConversionService::REFERENCE_NAME),
-                new Reference(MessageBuilder::class),
                 $this->finalFailureStrategy,
             ]
         );

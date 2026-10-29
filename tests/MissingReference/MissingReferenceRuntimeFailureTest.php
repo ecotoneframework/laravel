@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace Test\Ecotone\Laravel\MissingReference;
 
 use App\MissingReference\Laravel\FactoryRegistrationProvider;
-use Ecotone\Api\Gateway\CommandBus;
 use Ecotone\Laravel\EcotoneCacheClear;
+use Ecotone\Modelling\CommandBus;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Foundation\Application;
 use PHPUnit\Framework\TestCase;
-use Test\Ecotone\Laravel\RestoresLaravelHandlers;
 use Throwable;
 
 /**
@@ -26,8 +25,6 @@ use Throwable;
  */
 final class MissingReferenceRuntimeFailureTest extends TestCase
 {
-    use RestoresLaravelHandlers;
-
     protected function setUp(): void
     {
         $this->clearEcotoneCache();
