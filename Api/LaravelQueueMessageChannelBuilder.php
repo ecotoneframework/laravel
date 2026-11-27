@@ -7,9 +7,10 @@ namespace Ecotone\Api\Laravel;
 use Ecotone\Api\ExtensionObject\DelayedMessageChannelBuilder;
 use Ecotone\Api\ExtensionObject\FinalFailureStrategy;
 use Ecotone\Api\ExtensionObject\MediaType;
-use Ecotone\Api\Scheduling\TimeSpan;
+use Ecotone\Api\Scheduling\Duration;
 use Ecotone\Laravel\Queue\LaravelQueueAcknowledgementCallback;
 use Ecotone\Laravel\Queue\LaravelQueueMessageChannel;
+use Ecotone\Messaging\Channel\ChannelConsumedOneMessageAtATime;
 use Ecotone\Messaging\Channel\FinalFailureStrategyChannelBuilder;
 use Ecotone\Messaging\Channel\MessageChannelWithSerializationBuilder;
 use Ecotone\Messaging\Channel\PollableChannel\Serialization\OutboundMessageConverter;
@@ -26,14 +27,14 @@ use Illuminate\Support\Facades\Config;
 /**
  * licence Apache-2.0
  */
-final class LaravelQueueMessageChannelBuilder implements MessageChannelWithSerializationBuilder, FinalFailureStrategyChannelBuilder, DelayedMessageChannelBuilder
+final class LaravelQueueMessageChannelBuilder implements MessageChannelWithSerializationBuilder, FinalFailureStrategyChannelBuilder, DelayedMessageChannelBuilder, ChannelConsumedOneMessageAtATime
 {
     public function supportsDelayedMessages(): bool
     {
         return true;
     }
 
-    public function maximumDelay(): ?TimeSpan
+    public function maximumDelay(): ?Duration
     {
         return null;
     }
@@ -120,6 +121,14 @@ final class LaravelQueueMessageChannelBuilder implements MessageChannelWithSeria
     public function isStreamingChannel(): bool
     {
         return false;
+    }
+
+    public function whyItsConsumerHandlesOneMessageAtATime(): array
+    {
+        return [
+            'reason' => "it consumes Laravel queue channel `{$this->queueName}`, whose connection `{$this->connectionName}` Laravel keeps one of for the whole process: every coroutine would read from that one connection at the same time, which stops the process or mixes their transactions.",
+            'wayToHandleMoreAtOnce' => 'start more processes of this consumer, or move its handlers to a channel Ecotone connects to itself (DbalBackedMessageChannelBuilder with a connection registered from a DSN, AmqpBackedMessageChannelBuilder, RedisBackedMessageChannelBuilder or SqsBackedMessageChannelBuilder) and consume that channel on coroutines.',
+        ];
     }
 
     public function compile(MessagingContainerBuilder $builder): Definition
